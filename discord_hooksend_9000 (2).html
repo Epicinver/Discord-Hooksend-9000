@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Discord Hooksend 9000</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      font-family: 'Outfit', sans-serif;
+      background: linear-gradient(to right, #0f2027, #203a43, #2c5364);
+      color: #ffffff;
+      margin: 0;
+      padding: 2rem;
+      transition: background 0.4s ease, color 0.4s ease;
+    }
+    h1, h2 {
+      text-align: center;
+      margin-bottom: 1rem;
+    }
+    h1 {
+      font-size: 3rem;
+      color: #00bcd4;
+    }
+    h2 {
+      font-size: 2rem;
+      color: #66fcf1;
+    }
+    .card {
+      background: #1c1c1e;
+      padding: 2rem;
+      border-radius: 15px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+      margin-bottom: 2rem;
+      max-width: 800px;
+      margin-left: auto;
+      margin-right: auto;
+      transition: background 0.4s ease;
+    }
+    input, textarea, button, select {
+      width: 100%;
+      padding: 1rem;
+      margin-top: 0.75rem;
+      margin-bottom: 1.5rem;
+      border-radius: 10px;
+      border: none;
+      font-size: 1rem;
+      background: #2c2f33;
+      color: #fff;
+    }
+    input[type="color"] {
+      padding: 0.5rem;
+    }
+    button {
+      background: #00bcd4;
+      color: #000;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+    button:hover {
+      background: #00acc1;
+    }
+    .row { display: flex; flex-wrap: wrap; gap: 1rem; }
+    .half { flex: 1; min-width: 250px; }
+    footer {
+      text-align: center;
+      margin-top: 4rem;
+      color: #aaa;
+    }
+    #popup {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background-color: #00bcd4;
+      color: #000;
+      padding: 1rem 1.5rem;
+      border-radius: 8px;
+      font-weight: bold;
+      opacity: 0;
+      transform: translateY(-20px);
+      transition: opacity 0.4s, transform 0.4s;
+      z-index: 999;
+    }
+    #popup.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    #settings {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      background: #1c1c1e;
+      color: #fff;
+      padding: 0.5rem 1rem;
+      border-radius: 10px;
+      cursor: pointer;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+      font-weight: bold;
+    }
+    .dark-mode body {
+      background: #fafafa;
+      color: #111;
+    }
+    .dark-mode .card {
+      background: #fff;
+      color: #000;
+    }
+  </style>
+</head>
+<body>
+  <div id="settings" onclick="toggleTheme()">⚙️ Toggle Theme</div>
+  <div id="popup"></div>
+
+  <h1>Discord Hooksend 9000</h1>
+
+  <div class="card">
+    <h2>📤 Basic Sender</h2>
+    <input id="webhookUrl" type="url" placeholder="Enter Webhook URL" />
+    <input id="username" type="text" placeholder="Override Username (optional)" />
+    <textarea id="message" rows="4" placeholder="Enter your message..."></textarea>
+    <button onclick="sendMessage()">Send Message</button>
+  </div>
+
+  <div class="card">
+    <h2>🛠️ Advanced JSON Editor</h2>
+    <textarea id="jsonPayload" placeholder='{"content": "Hello from JSON!"}' rows="10"></textarea>
+    <button onclick="sendJSON()">Send JSON Payload</button>
+  </div>
+
+  <div class="card">
+    <h2>🎨 Drag & Drop Embed Builder</h2>
+    <div class="row">
+      <div class="half">
+        <input id="embedTitle" placeholder="Embed Title" />
+        <input id="embedDescription" placeholder="Embed Description" />
+        <label for="embedColor">Embed Color</label>
+        <input id="embedColor" type="color" value="#00bcd4" />
+        <button onclick="generateEmbed()">💾 Insert Into JSON Editor</button>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    Made by Hooksend :) | Hosted on GitHub Pages | Made for Discord
+  </footer>
+
+  <script>
+    function showPopup(message) {
+      const popup = document.getElementById('popup');
+      popup.textContent = message;
+      popup.classList.add('show');
+      setTimeout(() => popup.classList.remove('show'), 3000);
+    }
+
+    function sendMessage() {
+      const url = document.getElementById("webhookUrl").value;
+      const username = document.getElementById("username").value;
+      const message = document.getElementById("message").value;
+
+      const payload = { content: message };
+      if (username) payload.username = username;
+
+      fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      })
+      .then(() => showPopup("✅ Message sent!"))
+      .catch(err => showPopup("❌ Failed: " + err.message));
+    }
+
+    function sendJSON() {
+      const url = document.getElementById("webhookUrl").value;
+      let data;
+      try {
+        data = JSON.parse(document.getElementById("jsonPayload").value);
+      } catch (e) {
+        showPopup("❌ Invalid JSON format.");
+        return;
+      }
+
+      fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data)
+      })
+      .then(() => showPopup("✅ JSON sent!"))
+      .catch(err => showPopup("❌ Failed: " + err.message));
+    }
+
+    function generateEmbed() {
+      const title = document.getElementById("embedTitle").value;
+      const description = document.getElementById("embedDescription").value;
+      const color = document.getElementById("embedColor").value.replace("#", "0x");
+
+      const embed = {
+        embeds: [
+          {
+            title: title,
+            description: description,
+            color: parseInt(color)
+          }
+        ]
+      };
+
+      document.getElementById("jsonPayload").value = JSON.stringify(embed, null, 2);
+      showPopup("✅ Embed inserted into JSON editor!");
+    }
+
+    function toggleTheme() {
+      document.body.classList.toggle("dark-mode");
+      showPopup("🎨 Theme toggled!");
+    }
+  </script>
+</body>
+</html>
